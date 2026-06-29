@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Lịch công việc{% endblock %}
+{% block page_title %}Lịch công việc{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="btn-group">
+        <a href="{% url 'tasks:task_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> Danh sách</a>
+        <a href="{% url 'tasks:kanban' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-kanban"></i> Kanban</a>
+        <a href="{% url 'tasks:calendar' %}" class="btn btn-sm btn-primary"><i class="bi bi-calendar3"></i> Lịch</a>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-left"></i></a>
+        <strong style="min-width:160px;text-align:center">{{ month_label }}</strong>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-right"></i></a>
+    </div>
+</div>
+
+<div class="card-custom">
+    <table class="calendar-table">
+        <thead>
+            <tr>{% for wd in weekday_labels %}<th>{{ wd }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+            {% for week in grid %}
+            <tr>
+                {% for cell in week %}
+                <td class="calendar-cell {% if cell.is_today %}today{% endif %}">
+                    {% if cell.day %}
+                    <div class="calendar-day-num">{{ cell.day }}</div>
+                    {% for task in cell.tasks %}
+                    <a href="{% url 'tasks:task_detail' task.pk %}" class="d-block text-decoration-none">
+                        <div class="calendar-event" style="background: {% if task.status == 'done' %}#22c55e{% elif task.priority == 'high' %}#dc2626{% elif task.priority == 'medium' %}#d97706{% else %}#64748b{% endif %}" title="{{ task.title }}">
+                            {{ task.title }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

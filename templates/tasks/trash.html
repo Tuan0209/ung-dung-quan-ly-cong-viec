@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Thùng rác{% endblock %}
+{% block page_title %}Thùng rác{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-muted-sm">Công việc đã xóa được giữ tại đây. Bạn có thể khôi phục hoặc xóa vĩnh viễn.</span>
+    {% if tasks %}
+    <form method="post" action="{% url 'tasks:trash_empty' %}" onsubmit="return confirm('Xóa vĩnh viễn TẤT CẢ công việc trong thùng rác?')">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash3"></i> Dọn sạch thùng rác</button>
+    </form>
+    {% endif %}
+</div>
+
+{% for task in tasks %}
+<div class="task-item">
+    <div class="flex-grow-1 min-w-0">
+        <span class="task-title">{{ task.title }}</span>
+        <div class="task-meta">
+            <span class="badge-soft bg-{{ task.status_badge }}-subtle text-{{ task.status_badge }}-emphasis">{{ task.get_status_display }}</span>
+            {% if task.category %}<span class="meta-chip"><span class="cat-dot" style="background:{{ task.category.color }}"></span> {{ task.category.name }}</span>{% endif %}
+            <span class="meta-chip"><i class="bi bi-trash"></i> Đã xóa: {{ task.deleted_at|date:"d/m/Y H:i" }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" action="{% url 'tasks:task_restore' task.pk %}" class="m-0">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục</button>
+        </form>
+        <form method="post" action="{% url 'tasks:task_purge' task.pk %}" class="m-0" onsubmit="return confirm('Xóa vĩnh viễn công việc này?')">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i></button>
+        </form>
+    </div>
+</div>
+{% empty %}
+<div class="card-custom empty-state">
+    <i class="bi bi-trash"></i>
+    <p class="mt-3 mb-0">Thùng rác trống.</p>
+</div>
+{% endfor %}
+{% endblock %}

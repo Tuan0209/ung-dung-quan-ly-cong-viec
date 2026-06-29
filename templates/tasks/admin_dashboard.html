@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Bảng quản trị{% endblock %}
+{% block page_title %}Bảng quản trị hệ thống{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+    <i class="bi bi-shield-lock fs-5"></i>
+    <div>Bạn đang ở <strong>khu vực quản trị</strong> — quản lý dữ liệu của <strong>toàn bộ người dùng</strong> trong hệ thống.</div>
+</div>
+
+<!-- Thống kê toàn hệ thống -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-indigo-soft"><i class="bi bi-people"></i></div>
+            <div><div class="stat-value">{{ total_users }}</div><div class="stat-label">Người dùng ({{ active_users }} hoạt động)</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-sky-soft"><i class="bi bi-list-task"></i></div>
+            <div><div class="stat-value">{{ total_tasks }}</div><div class="stat-label">Tổng công việc</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-green-soft"><i class="bi bi-check-circle"></i></div>
+            <div><div class="stat-value">{{ total_done }}</div><div class="stat-label">Đã hoàn thành</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-red-soft"><i class="bi bi-exclamation-triangle"></i></div>
+            <div><div class="stat-value">{{ total_overdue }}</div><div class="stat-label">Quá hạn toàn hệ thống</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-amber-soft"><i class="bi bi-folder"></i></div>
+            <div><div class="stat-value">{{ total_categories }}</div><div class="stat-label">Danh mục</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-indigo-soft"><i class="bi bi-tags"></i></div>
+            <div><div class="stat-value">{{ total_tags }}</div><div class="stat-label">Nhãn</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-red-soft"><i class="bi bi-trash"></i></div>
+            <div><div class="stat-value">{{ trashed }}</div><div class="stat-label">Trong thùng rác</div></div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card"><div class="stat-icon bg-green-soft"><i class="bi bi-person-check"></i></div>
+            <div><div class="stat-value">{{ active_users }}</div><div class="stat-label">Tài khoản hoạt động</div></div></div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card-custom h-100">
+            <h6 class="fw-bold mb-3">Công việc theo trạng thái (toàn hệ thống)</h6>
+            <canvas id="adminStatusChart" height="200"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card-custom h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Top người dùng tích cực</h6>
+                <a href="{% url 'tasks:admin_users' %}" class="text-muted-sm">Quản lý người dùng</a>
+            </div>
+            {% for u in top_users %}
+            <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                <span class="avatar-circle">{{ u.username|first|upper }}</span>
+                <div class="flex-grow-1">
+                    <div class="fw-600">{{ u.get_full_name|default:u.username }}</div>
+                    <div class="text-muted-sm">@{{ u.username }}</div>
+                </div>
+                <span class="badge bg-primary-subtle text-primary-emphasis">{{ u.num_tasks }} công việc</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Công việc mới nhất toàn hệ thống</h6>
+                <a href="{% url 'tasks:admin_tasks' %}" class="text-muted-sm">Quản lý công việc</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr class="text-muted-sm"><th>Công việc</th><th>Người tạo</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                        {% for t in recent_tasks %}
+                        <tr>
+                            <td>{{ t.title }}</td>
+                            <td class="text-muted-sm">@{{ t.owner.username }}</td>
+                            <td><span class="badge-soft bg-{{ t.status_badge }}-subtle text-{{ t.status_badge }}-emphasis">{{ t.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card-custom">
+            <h6 class="fw-bold mb-3">Người dùng mới</h6>
+            {% for u in new_users %}
+            <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                <span class="avatar-circle">{{ u.username|first|upper }}</span>
+                <div class="flex-grow-1">
+                    <div class="fw-600">{{ u.get_full_name|default:u.username }}</div>
+                    <div class="text-muted-sm">Tham gia {{ u.date_joined|date:"d/m/Y" }}</div>
+                </div>
+                {% if u.is_staff %}<span class="badge bg-warning-subtle text-warning-emphasis">Admin</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    new Chart(document.getElementById('adminStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Cần làm', 'Đang làm', 'Hoàn thành'],
+            datasets: [{ data: {{ status_data|safe }}, backgroundColor: ['#94a3b8','#0ea5e9','#22c55e'], borderWidth: 0 }]
+        },
+        options: { cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+    });
+</script>
+{% endblock %}

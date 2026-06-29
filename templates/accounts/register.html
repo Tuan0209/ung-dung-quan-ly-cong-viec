@@ -1,0 +1,22 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Đăng ký{% endblock %}
+{% block subtitle %}Tạo tài khoản mới{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="mb-3">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text small">{{ field.help_text|safe }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary w-100 mb-3">Đăng ký</button>
+    <p class="text-center text-muted-sm mb-0">
+        Đã có tài khoản? <a href="{% url 'accounts:login' %}">Đăng nhập</a>
+    </p>
+</form>
+{% endblock %}

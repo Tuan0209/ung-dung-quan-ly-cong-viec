@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-custom">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                    {{ form.title }}
+                    {% for e in form.title.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mô tả</label>
+                    {{ form.description }}
+                    {% for e in form.description.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Danh mục</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hạn hoàn thành</label>
+                        {{ form.due_date }}
+                        {% for e in form.due_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Độ ưu tiên</label>
+                        {{ form.priority }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Trạng thái</label>
+                        {{ form.status }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giao cho</label>
+                        {{ form.assigned_to }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Lặp lại</label>
+                        {{ form.repeat }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nhãn <span class="text-muted-sm">(giữ Ctrl để chọn nhiều)</span></label>
+                        {{ form.tags }}
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check">
+                            {{ form.is_starred }}
+                            <label class="form-check-label" for="{{ form.is_starred.id_for_label }}">
+                                <i class="bi bi-star-fill text-warning"></i> Đánh dấu quan trọng
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-outline-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

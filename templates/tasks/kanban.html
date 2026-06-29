@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Bảng Kanban{% endblock %}
+{% block page_title %}Bảng Kanban{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="btn-group">
+        <a href="{% url 'tasks:task_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> Danh sách</a>
+        <a href="{% url 'tasks:kanban' %}" class="btn btn-sm btn-primary"><i class="bi bi-kanban"></i> Kanban</a>
+        <a href="{% url 'tasks:calendar' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> Lịch</a>
+    </div>
+    <span class="text-muted-sm"><i class="bi bi-info-circle"></i> Kéo thẻ công việc sang cột khác để đổi trạng thái</span>
+</div>
+
+<div class="kanban-board">
+    {% for col_key, col_label, col_tasks, color in cols %}
+    <div class="kanban-col" data-status="{{ col_key }}">
+        <div class="kanban-col-head">
+            <span><span class="badge bg-{{ color }}-subtle text-{{ color }}-emphasis">{{ col_label }}</span></span>
+            <span class="text-muted-sm">{{ col_tasks|length }}</span>
+        </div>
+        <div class="kanban-dropzone">
+            {% for task in col_tasks %}
+            <div class="kanban-card" draggable="true" data-id="{{ task.pk }}">
+                <a href="{% url 'tasks:task_detail' task.pk %}" class="kc-title text-decoration-none text-dark d-block">{% if task.is_starred %}<i class="bi bi-star-fill text-warning"></i> {% endif %}{{ task.title }}</a>
+                <div class="task-meta">
+                    <span class="badge-soft bg-{{ task.priority_badge }}-subtle text-{{ task.priority_badge }}-emphasis">{{ task.get_priority_display }}</span>
+                    {% if task.category %}<span class="meta-chip"><span class="cat-dot" style="background:{{ task.category.color }}"></span> {{ task.category.name }}</span>{% endif %}
+                    {% if task.due_date %}<span class="meta-chip {% if task.is_overdue %}text-danger{% endif %}"><i class="bi bi-calendar-event"></i> {{ task.due_date|date:"d/m" }}</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const csrftoken = '{{ csrf_token }}';
+    let dragged = null;
+
+    document.querySelectorAll('.kanban-card').forEach(card => {
+        card.addEventListener('dragstart', () => { dragged = card; card.classList.add('dragging'); });
+        card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragged = null; });
+    });
+
+    document.querySelectorAll('.kanban-col').forEach(col => {
+        const zone = col.querySelector('.kanban-dropzone');
+        col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+        col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+        col.addEventListener('drop', e => {
+            e.preventDefault();
+            col.classList.remove('drag-over');
+            if (!dragged) return;
+            const id = dragged.dataset.id;
+            const status = col.dataset.status;
+            zone.appendChild(dragged);
+            const form = new FormData();
+            form.append('status', status);
+            form.append('csrfmiddlewaretoken', csrftoken);
+            fetch(`/cong-viec/${id}/dat-trang-thai/`, { method: 'POST', body: form })
+                .then(r => r.json())
+                .then(d => { if (!d.ok) location.reload(); })
+                .catch(() => location.reload());
+            // cập nhật số đếm các cột
+            document.querySelectorAll('.kanban-col').forEach(c => {
+                c.querySelector('.kanban-col-head .text-muted-sm').textContent =
+                    c.querySelectorAll('.kanban-card').length;
+            });
+        });
+    });
+</script>
+{% endblock %}

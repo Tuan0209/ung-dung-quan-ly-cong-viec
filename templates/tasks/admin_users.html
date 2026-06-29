@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản lý người dùng{% endblock %}
+{% block page_title %}Quản lý người dùng{% endblock %}
+
+{% block content %}
+<div class="card-custom mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Tìm người dùng</label>
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tên đăng nhập, họ tên hoặc email...">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary"><i class="bi bi-search"></i> Tìm</button>
+            <a href="{% url 'tasks:admin_users' %}" class="btn btn-outline-secondary">Xóa lọc</a>
+        </div>
+    </form>
+</div>
+
+<div class="card-custom">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr class="text-muted-sm">
+                    <th>Người dùng</th><th>Email</th><th>Vai trò</th>
+                    <th class="text-center">Công việc</th><th>Trạng thái</th><th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in page_obj %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="avatar-circle">{{ u.username|first|upper }}</span>
+                            <div>
+                                <div class="fw-600">{{ u.get_full_name|default:u.username }}</div>
+                                <div class="text-muted-sm">@{{ u.username }} · {{ u.date_joined|date:"d/m/Y" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted-sm">{{ u.email|default:"—" }}</td>
+                    <td>
+                        {% if u.is_superuser %}<span class="badge bg-danger-subtle text-danger-emphasis">Quản trị tối cao</span>
+                        {% elif u.is_staff %}<span class="badge bg-warning-subtle text-warning-emphasis">Quản trị viên</span>
+                        {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">Người dùng</span>{% endif %}
+                    </td>
+                    <td class="text-center">{{ u.num_tasks }}</td>
+                    <td>
+                        {% if u.is_active %}<span class="badge bg-success-subtle text-success-emphasis">Hoạt động</span>
+                        {% else %}<span class="badge bg-danger-subtle text-danger-emphasis">Đã khóa</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if u != request.user and not u.is_superuser %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <form method="post" action="{% url 'tasks:admin_toggle_user' u.pk %}">{% csrf_token %}
+                                        <button class="dropdown-item">{% if u.is_active %}<i class="bi bi-lock"></i> Khóa tài khoản{% else %}<i class="bi bi-unlock"></i> Mở khóa{% endif %}</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" action="{% url 'tasks:admin_toggle_staff' u.pk %}">{% csrf_token %}
+                                        <button class="dropdown-item">{% if u.is_staff %}<i class="bi bi-person-dash"></i> Thu hồi quyền admin{% else %}<i class="bi bi-person-up"></i> Cấp quyền admin{% endif %}</button>
+                                    </form>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'tasks:admin_delete_user' u.pk %}" onsubmit="return confirm('Xóa tài khoản này? Mọi công việc của họ sẽ bị xóa.')">{% csrf_token %}
+                                        <button class="dropdown-item text-danger"><i class="bi bi-trash"></i> Xóa tài khoản</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        {% else %}<span class="text-muted-sm">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted-sm py-4">Không tìm thấy người dùng.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">Trước</a></li>{% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">Sau</a></li>{% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

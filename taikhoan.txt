@@ -1,0 +1,38 @@
+============================================================
+   DANH SÁCH TÀI KHOẢN - ỨNG DỤNG QUẢN LÝ CÔNG VIỆC
+============================================================
+
+>>> TÀI KHOẢN QUẢN TRỊ (Admin)
+------------------------------------------------------------
+   Tên đăng nhập : admin
+   Mật khẩu      : admin123
+   Vai trò       : Quản trị viên
+   Quyền         : - Quản trị hệ thống (trang /quan-tri/)
+                   - Khóa / mở khóa người dùng
+                   - Django Admin (/admin)
+
+>>> TÀI KHOẢN NGƯỜI DÙNG (mật khẩu chung: user123)
+------------------------------------------------------------
+   STT | Tên đăng nhập | Mật khẩu | Họ và tên           | Ghi chú
+   ----|---------------|----------|---------------------|------------------------
+    1  | trungha       | user123  | Nguyễn Trung Hà     | Nhiều dữ liệu mẫu nhất
+    2  | lan           | user123  | Trần Thị Lan        |
+    3  | minh          | user123  | Lê Văn Minh         |
+    4  | hoa           | user123  | Phạm Thị Hoa        |
+    5  | nam           | user123  | Đỗ Hoàng Nam        |
+    6  | thao          | user123  | Vũ Phương Thảo      |
+
+============================================================
+   ĐỊA CHỈ TRUY CẬP
+------------------------------------------------------------
+   Ứng dụng      : http://127.0.0.1:8000/
+   Đăng nhập     : http://127.0.0.1:8000/tai-khoan/dang-nhap/
+   Đăng ký       : http://127.0.0.1:8000/tai-khoan/dang-ky/
+   Django Admin  : http://127.0.0.1:8000/admin/
+============================================================
+
+Ghi chú:
+- Dữ liệu mẫu được tạo bằng lệnh: python manage.py seed_data --fresh
+- Người dùng có thể tự đăng ký tài khoản mới tại trang Đăng ký.
+- Có thể đổi mật khẩu tại: Hồ sơ cá nhân -> Đổi mật khẩu.
+============================================================

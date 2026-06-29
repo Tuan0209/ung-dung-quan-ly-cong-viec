@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Nhãn{% endblock %}
+{% block page_title %}Quản lý nhãn{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card-custom">
+            <h6 class="fw-bold mb-3">Thêm nhãn mới</h6>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Tên nhãn <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% for e in form.name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Màu sắc</label>
+                    {{ form.color }}
+                </div>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Thêm nhãn</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card-custom">
+            <h6 class="fw-bold mb-3">Danh sách nhãn</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in tags %}
+                <div class="d-flex align-items-center gap-2 border rounded-pill px-3 py-1">
+                    <span class="cat-dot" style="background:{{ tag.color }}"></span>
+                    <span class="fw-600">{{ tag.name }}</span>
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ tag.num_tasks }}</span>
+                    <form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" class="m-0" onsubmit="return confirm('Xóa nhãn này?')">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-x-lg"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-muted-sm mb-0">Chưa có nhãn nào. Hãy tạo nhãn đầu tiên!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

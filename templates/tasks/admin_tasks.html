@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản lý công việc{% endblock %}
+{% block page_title %}Quản lý công việc toàn hệ thống{% endblock %}
+
+{% block content %}
+<div class="card-custom mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Tìm kiếm</label>
+            <input type="text" name="q" value="{{ current.q }}" class="form-control" placeholder="Tiêu đề công việc...">
+        </div>
+        <div class="col-md-3 col-6">
+            <label class="form-label">Trạng thái</label>
+            <select name="status" class="form-select">
+                <option value="">Tất cả</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if current.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 col-6">
+            <label class="form-label">Người tạo</label>
+            <select name="owner" class="form-select">
+                <option value="">Tất cả</option>
+                {% for u in users %}
+                <option value="{{ u.id }}" {% if current.owner == u.id|stringformat:'s' %}selected{% endif %}>{{ u.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a href="{% url 'tasks:admin_tasks' %}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </form>
+</div>
+
+<div class="card-custom">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted-sm">Tổng <strong>{{ page_obj.paginator.count }}</strong> công việc</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr class="text-muted-sm">
+                    <th>Tiêu đề</th><th>Người tạo</th><th>Danh mục</th>
+                    <th>Ưu tiên</th><th>Trạng thái</th><th>Hạn</th><th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in page_obj %}
+                <tr>
+                    <td><a href="{% url 'tasks:task_detail' t.pk %}" class="text-decoration-none fw-600">{{ t.title }}</a></td>
+                    <td class="text-muted-sm">@{{ t.owner.username }}</td>
+                    <td class="text-muted-sm">{{ t.category.name|default:"—" }}</td>
+                    <td><span class="badge-soft bg-{{ t.priority_badge }}-subtle text-{{ t.priority_badge }}-emphasis">{{ t.get_priority_display }}</span></td>
+                    <td><span class="badge-soft bg-{{ t.status_badge }}-subtle text-{{ t.status_badge }}-emphasis">{{ t.get_status_display }}</span></td>
+                    <td class="text-muted-sm">{{ t.due_date|date:"d/m/Y"|default:"—" }}</td>
+                    <td class="text-end">
+                        <form method="post" action="{% url 'tasks:admin_task_delete' t.pk %}" class="d-inline" onsubmit="return confirm('Xóa vĩnh viễn công việc này khỏi hệ thống?')">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted-sm py-4">Không có công việc nào.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% if current.q %}q={{ current.q }}&{% endif %}{% if current.status %}status={{ current.status }}&{% endif %}{% if current.owner %}owner={{ current.owner }}&{% endif %}page={{ page_obj.previous_page_number }}">Trước</a></li>{% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}"><a class="page-link" href="?{% if current.q %}q={{ current.q }}&{% endif %}{% if current.status %}status={{ current.status }}&{% endif %}{% if current.owner %}owner={{ current.owner }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% if current.q %}q={{ current.q }}&{% endif %}{% if current.status %}status={{ current.status }}&{% endif %}{% if current.owner %}owner={{ current.owner }}&{% endif %}page={{ page_obj.next_page_number }}">Sau</a></li>{% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

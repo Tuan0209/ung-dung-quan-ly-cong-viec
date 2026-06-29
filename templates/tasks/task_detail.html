@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+{% block page_title %}Chi tiết công việc{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="mb-3">
+            <a href="{% url 'tasks:task_list' %}" class="text-muted-sm"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+        </div>
+
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <h4 class="fw-bold mb-0 {% if task.status == 'done' %}text-decoration-line-through text-muted{% endif %}">
+                    {% if task.is_starred %}<i class="bi bi-star-fill text-warning"></i> {% endif %}{{ task.title }}
+                </h4>
+                <div class="d-flex gap-2">
+                    <form method="post" action="{% url 'tasks:task_star' task.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-warning" title="Đánh dấu quan trọng">
+                            <i class="bi {% if task.is_starred %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+                        </button>
+                    </form>
+                    {% if task.owner == request.user %}
+                    <a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
+                    <form method="post" action="{% url 'tasks:task_delete' task.pk %}" onsubmit="return confirm('Chuyển công việc vào thùng rác?')">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <span class="badge-soft bg-{{ task.status_badge }}-subtle text-{{ task.status_badge }}-emphasis">{{ task.get_status_display }}</span>
+                <span class="badge-soft bg-{{ task.priority_badge }}-subtle text-{{ task.priority_badge }}-emphasis"><i class="bi bi-flag"></i> {{ task.get_priority_display }}</span>
+                {% if task.repeat != 'none' %}<span class="badge-soft bg-info-subtle text-info-emphasis"><i class="bi bi-arrow-repeat"></i> {{ task.get_repeat_display }}</span>{% endif %}
+                {% if task.is_overdue %}<span class="badge-soft bg-danger-subtle text-danger-emphasis"><i class="bi bi-exclamation-triangle"></i> Quá hạn</span>{% endif %}
+                {% for tag in task.tags.all %}
+                <span class="tag-chip" style="background: {{ tag.color }}"><i class="bi bi-tag-fill"></i> {{ tag.name }}</span>
+                {% endfor %}
+            </div>
+
+            {% if task.description %}
+            <div class="mt-4">
+                <h6 class="fw-bold">Mô tả</h6>
+                <p class="text-muted mb-0" style="white-space: pre-line;">{{ task.description }}</p>
+            </div>
+            {% endif %}
+
+            <hr class="my-4">
+            <div class="row text-muted-sm g-3">
+                <div class="col-sm-6"><i class="bi bi-tag"></i> Danh mục:
+                    {% if task.category %}<span class="cat-dot" style="background:{{ task.category.color }}"></span> <strong>{{ task.category.name }}</strong>{% else %}<strong>Không có</strong>{% endif %}
+                </div>
+                <div class="col-sm-6"><i class="bi bi-person"></i> Giao cho:
+                    <strong>{% if task.assigned_to %}{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}{% else %}{{ task.owner.get_full_name|default:task.owner.username }}{% endif %}</strong>
+                </div>
+                <div class="col-sm-6"><i class="bi bi-calendar-event"></i> Hạn: <strong>{{ task.due_date|date:"d/m/Y"|default:"Không đặt" }}</strong></div>
+                <div class="col-sm-6"><i class="bi bi-clock-history"></i> Ngày tạo: <strong>{{ task.created_at|date:"d/m/Y H:i" }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Công việc con (checklist) -->
+        <div class="card-custom mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-check2-square"></i> Công việc con</h6>
+                <span class="text-muted-sm">Tiến độ: <strong>{{ task.progress }}%</strong></span>
+            </div>
+            <div class="progress mb-3"><div class="progress-bar" style="width: {{ task.progress }}%"></div></div>
+            {% for sub in task.subtasks.all %}
+            <div class="subtask-row {% if sub.is_done %}done{% endif %}">
+                <form method="post" action="{% url 'tasks:subtask_toggle' sub.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <input type="checkbox" class="subtask-check" onchange="this.form.submit()" {% if sub.is_done %}checked{% endif %}>
+                </form>
+                <span class="flex-grow-1">{{ sub.title }}</span>
+                <form method="post" action="{% url 'tasks:subtask_delete' sub.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-x-lg"></i></button>
+                </form>
+            </div>
+            {% empty %}
+            <p class="text-muted-sm mb-3">Chưa có mục việc con nào.</p>
+            {% endfor %}
+            <form method="post" action="{% url 'tasks:subtask_add' task.pk %}" class="d-flex gap-2 mt-3">
+                {% csrf_token %}
+                {{ subtask_form.title }}
+                <button class="btn btn-primary"><i class="bi bi-plus-lg"></i></button>
+            </form>
+        </div>
+
+        <!-- Bình luận -->
+        <div class="card-custom mt-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-chat-dots"></i> Bình luận ({{ task.comments.count }})</h6>
+            {% for c in task.comments.all %}
+            <div class="comment-item">
+                <span class="avatar-circle">{{ c.user.username|first|upper }}</span>
+                <div class="comment-bubble">
+                    <div class="d-flex justify-content-between">
+                        <strong class="small">{{ c.user.get_full_name|default:c.user.username }}</strong>
+                        <span class="text-muted-sm">{{ c.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div style="white-space: pre-line;">{{ c.content }}</div>
+                    {% if c.user == request.user %}
+                    <form method="post" action="{% url 'tasks:comment_delete' c.pk %}" class="mt-1">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-link text-danger p-0 small">Xóa</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted-sm">Chưa có bình luận nào.</p>
+            {% endfor %}
+            <form method="post" action="{% url 'tasks:comment_add' task.pk %}" class="mt-3">
+                {% csrf_token %}
+                {{ comment_form.content }}
+                <button class="btn btn-primary btn-sm mt-2"><i class="bi bi-send"></i> Gửi bình luận</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cột phải -->
+    <div class="col-lg-4">
+        <div class="card-custom">
+            <h6 class="fw-bold mb-3"><i class="bi bi-lightning"></i> Thao tác nhanh</h6>
+            <form method="post" action="{% url 'tasks:task_toggle' task.pk %}" class="d-grid mb-2">
+                {% csrf_token %}
+                {% if task.status == 'done' %}
+                <button class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> Đánh dấu chưa xong</button>
+                {% else %}
+                <button class="btn btn-success"><i class="bi bi-check-lg"></i> Đánh dấu hoàn thành</button>
+                {% endif %}
+            </form>
+            <form method="post" action="{% url 'tasks:task_remind' task.pk %}" class="d-grid">
+                {% csrf_token %}
+                <button class="btn btn-outline-primary"><i class="bi bi-envelope"></i> Gửi nhắc nhở qua email</button>
+            </form>
+        </div>
+
+        <!-- Tệp đính kèm -->
+        <div class="card-custom mt-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-paperclip"></i> Tệp đính kèm ({{ task.attachments.count }})</h6>
+            {% for att in task.attachments.all %}
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <a href="{{ att.file.url }}" target="_blank" class="text-truncate me-2"><i class="bi bi-file-earmark"></i> {{ att.original_name }}</a>
+                {% if task.owner == request.user %}
+                <form method="post" action="{% url 'tasks:attachment_delete' att.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-muted-sm">Chưa có tệp nào.</p>
+            {% endfor %}
+            <form method="post" action="{% url 'tasks:attachment_add' task.pk %}" enctype="multipart/form-data" class="mt-3">
+                {% csrf_token %}
+                {{ attachment_form.file }}
+                <button class="btn btn-primary btn-sm mt-2 w-100"><i class="bi bi-upload"></i> Tải lên</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

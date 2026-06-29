@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách công việc</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #1e293b; }
+        h1 { font-size: 20px; margin-bottom: 4px; }
+        .meta { color: #64748b; font-size: 13px; margin-bottom: 18px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+        th { background: #f1f5f9; }
+        .toolbar { margin-bottom: 16px; }
+        @media print { .toolbar { display: none; } }
+        button { padding: 8px 16px; border: none; background: #4f46e5; color: #fff; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">In trang này</button>
+    </div>
+    <h1>DANH SÁCH CÔNG VIỆC</h1>
+    <div class="meta">Xuất ngày: {{ now|date:"d/m/Y H:i" }} &middot; Tổng: {{ tasks|length }} công việc</div>
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th><th>Tiêu đề</th><th>Danh mục</th><th>Ưu tiên</th>
+                <th>Trạng thái</th><th>Hạn</th><th>Người được giao</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tasks %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ t.title }}</td>
+                <td>{{ t.category.name|default:"—" }}</td>
+                <td>{{ t.get_priority_display }}</td>
+                <td>{{ t.get_status_display }}</td>
+                <td>{{ t.due_date|date:"d/m/Y"|default:"—" }}</td>
+                <td>{% if t.assigned_to %}{{ t.assigned_to.get_full_name|default:t.assigned_to.username }}{% else %}{{ t.owner.username }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

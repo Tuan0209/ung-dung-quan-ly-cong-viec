@@ -1,0 +1,125 @@
+# ==================== TỰ ĐỘNG IGNORE ====================
+
+# --- File extension bỏ qua ---
+*.txt
+*.sh
+*.md
+
+# --- Báo cáo / Slide / Đồ án (KHÔNG push lên git) ---
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.pdf
+*.xlsx
+*.xls
+~$*
+
+BaoCao_*
+Bao_Cao_*
+Bao-Cao_*
+DeCuong_*
+De_Cuong_*
+De-Cuong_*
+Slide_*
+DATN_*
+DoAn_*
+Do_An_*
+Khoa_Luan_*
+KhoaLuan_*
+ThesisReport_*
+*_BaoCao.*
+*_DeCuong.*
+*_Slide.*
+*_DATN.*
+*_DoAn.*
+*_KhoaLuan.*
+
+# --- Thư mục báo cáo / slide / đề cương / yêu cầu ---
+yeucau/
+yeu-cau/
+baocao/
+bao-cao/
+bao_cao/
+slide/
+slides/
+report/
+reports/
+decuong/
+de-cuong/
+de_cuong/
+datn/
+doan/
+do-an/
+do_an/
+khoaluan/
+khoa-luan/
+khoa_luan/
+
+# --- Script Python sinh báo cáo / slide ---
+generate_baocao.py
+generate_slide.py
+generate_decuong.py
+generate_report.py
+generate_*.py
+
+# --- Playwright (test artifacts hệ thống — KHÔNG push) ---
+test-results/
+playwright-report/
+playwright/.cache/
+screenshots/
+.last-run.json
+trace.zip
+*-snapshots/
+
+# --- Ngoại lệ: giữ lại ---
+!taikhoan.txt
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/media/
+/baocao/plantuml.jar
+
+# --- Dependencies ---
+node_modules/
+vendor/
+
+# --- Build output ---
+dist/
+build/
+out/
+
+# --- IDE & Editor ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Environment & Secret ---
+.env
+.env.local
+.env.production
+*.pem
+*.key
+credentials.json
+
+# --- Log & Cache ---
+*.log
+.cache/
+.temp/
+.tmp/
